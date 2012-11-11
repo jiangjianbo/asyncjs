@@ -10,7 +10,7 @@
     <name>lightweight asynchronized javascript library</name>
     <url>http://www.asyncjs.org</url>
 
-    <!-- ²Î¿¼×Ô http://blog.akquinet.de/2011/02/11/mavenizing-javascript-projects -->
+    <!-- å‚è€ƒè‡ª http://blog.akquinet.de/2011/02/11/mavenizing-javascript-projects -->
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,7 +29,7 @@
         </resources>
 
         <extensions>
-            <!-- À©Õ¹maven£¬Ê¹Æä¿ÉÒÔÊ¶±ðjsÀàÐÍ -->
+            <!-- æ‰©å±•mavenï¼Œä½¿å…¶å¯ä»¥è¯†åˆ«jsç±»åž‹ -->
             <extension>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>javascript-maven-plugin</artifactId>
@@ -38,8 +38,9 @@
         </extensions>
 
         <plugins>
+            <!--
             <plugin>
-                <!-- ÔÚphantomjs»·¾³ÖÐÔËÐÐqunit, from https://code.google.com/p/phantomjs-qunit-runner? -->
+                < ! - - åœ¨phantomjsçŽ¯å¢ƒä¸­è¿è¡Œqunit, from https://code.google.com/p/phantomjs-qunit-runner? - - >
                 <groupId>net.kennychua</groupId>
                 <artifactId>phantomjs-qunit-runner</artifactId>
                 <version>1.0.15</version>
@@ -48,20 +49,21 @@
                     <jsTestDirectory>src/test/js</jsTestDirectory>
                     <ignoreFailures>false</ignoreFailures>
                     <phantomJsExec>${phantomjs.home}/phantomjs.exe</phantomJsExec>
-                    <!-- Optional -->
-                    <!--
+                    < ! - - Optional - - >
+                    < ! - -
                     <includeLibsInDir>
                         <directory>${js.libs.include.dir}</directory>
                         <includes>
                             <include>**/*.js</include>
                         </includes>
                     </includeLibsInDir>
-                    -->
+                    - - >
                 </configuration>
             </plugin>
+            -->
             
             <plugin>
-                <!-- Ñ¹Ëõ»ìÏýjsÎÄ¼þ, from http://mojo.codehaus.org/webminifier-maven-plugin/usage.html? -->
+                <!-- åŽ‹ç¼©æ··æ·†jsæ–‡ä»¶, from http://mojo.codehaus.org/webminifier-maven-plugin/usage.html? -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>webminifier-maven-plugin</artifactId>
                 <version>1.0.1</version>
@@ -75,7 +77,7 @@
                 <configuration>
                     <jsCompressorType>YUI</jsCompressorType>
                     <jsSplitPoints>
-                        <!-- htmlÎÄ¼þÖÐÃ¿¸öpropertyÖÐname¶¨ÒåµÄjsÎÄ¼þÖ®Ç°µÄjsÎÄ¼þ½«±»ºÏ²¢³Évalue¶ÔÓÚµÄÃû×Ö -->
+                        <!-- htmlæ–‡ä»¶ä¸­æ¯ä¸ªpropertyä¸­nameå®šä¹‰çš„jsæ–‡ä»¶ä¹‹å‰çš„jsæ–‡ä»¶å°†è¢«åˆå¹¶æˆvalueå¯¹äºŽçš„åå­— -->
                         <property>
                             <name>js/framework.js</name>
                             <value>myframeworkfilename</value>
@@ -86,7 +88,7 @@
             </plugin>
             
             <plugin>
-                <!-- ¼ì²éjs´úÂëµÄ¹æ·¶£¬from http://mojo.codehaus.org/jslint-maven-plugin/index.html? -->
+                <!-- æ£€æŸ¥jsä»£ç çš„è§„èŒƒï¼Œfrom http://mojo.codehaus.org/jslint-maven-plugin/index.html? -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jslint-maven-plugin</artifactId>
                 <version>1.0.1</version>
@@ -123,7 +125,7 @@
                     <skipChecksumVerification>false</skipChecksumVerification>
                     <force>false</force>
                     <artifactItems>
-                        <!-- ÏÂÔØjs¿â£¬²Î¿¼https://developers.google.com/speed/libraries/devguide? -->
+                        <!-- ä¸‹è½½jsåº“ï¼Œå‚è€ƒhttps://developers.google.com/speed/libraries/devguide? -->
                         <artifactItem>
                             <groupId>org.jquery</groupId>
                             <artifactId>jquery</artifactId>
@@ -161,7 +163,7 @@
             </plugin>
             
             <plugin>
-                <!-- ±ê×¼µÄresource²å¼þ£¬ÉèÖÃºöÂÔpdfºÍswf -->
+                <!-- æ ‡å‡†çš„resourceæ’ä»¶ï¼Œè®¾ç½®å¿½ç•¥pdfå’Œswf -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.6</version>
@@ -174,7 +176,7 @@
             </plugin>
                         
             <plugin>
-                <!-- Éú³ÉjsdocÎÄµµ£¬ from https://code.google.com/p/jsdoctk-plugin/ -->
+                <!-- ç”Ÿæˆjsdocæ–‡æ¡£ï¼Œ from https://code.google.com/p/jsdoctk-plugin/ -->
                 <groupId>nl.windgazer</groupId>
                 <artifactId>jsdoctk-plugin</artifactId>
                 <version>2.3.2</version>
@@ -203,11 +205,35 @@
                 <version>1.7</version>
                 <executions>
                     <execution>
-                        <!-- °ïÖú°Ñjs²âÊÔ½Å±¾×Ô¶¯Ì×ÓÃqunitµÄÍ¨ÓÃhtml -->
+                        <!-- å¸®åŠ©æŠŠjsæµ‹è¯•è„šæœ¬è‡ªåŠ¨å¥—ç”¨qunitçš„é€šç”¨html -->
                         <id>qunit-html-generate</id>
-                        <phase>compile</phase>
+                        <phase>generate-test-sources</phase>
                         <configuration>
                             <target>
+                                <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+                                <!-- æ‰«æsrc/test/jsç›®å½•ï¼Œå¯»æ‰¾æ‰€æœ‰test*.jså’Œ*test.jsçš„æ–‡ä»¶ -->
+                                <!-- æ‰«æsrc/main/jsç›®å½•ï¼Œæ‰¾åˆ°å¯¹åº”çš„*.js -->
+                                <!-- åŒæ—¶åŒ…å«å¹¶ç”Ÿæˆtest*.htmlæ–‡ä»¶åˆ°target/generated-testç›®å½• -->
+                                <for param="file">
+                                    <path>
+                                        <fileset dir="${basedir}/test/js" includes="**/test*.js,**/*test.js"/>
+                                    </path>
+                                    <sequential>
+                                        <propertyregex property="fname" input="@{file}" regexp=".*/([Tt]est[\-_]?(.+)|(.*[^\-_]+)[\-_]?[Tt]est)\.js" replace="\2\3" override="yes" />
+                                        <propertyregex property="fpath" input="@{file}" regexp="(.*/).+" replace="\1" override="yes" />
+                                        <if>
+                                            <available file="${basedir}/main/js/${fpath}/${fname}.js" />
+                                            <then>
+                                                <copy todir="${}">
+                                                    <fileset dir="src_dir"/>
+                                                    <filterset>
+                                                        <filter token="TITLE" value="Foo Bar"/>
+                                                    </filterset>
+                                                </copy>                                                
+                                            </then>
+                                        </if>
+                                    </sequential>
+                                </for>
                             </target>
                         </configuration>
                         <goals>
@@ -215,11 +241,29 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>ant-contrib</groupId>
+                        <artifactId>ant-contrib</artifactId>
+                        <version>1.0b3</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>ant</groupId>
+                                <artifactId>ant</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant</artifactId>
+                        <version>1.8.4</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
 
             <plugin>
-                <!-- ±¨±íÄ£¿é -->
+                <!-- æŠ¥è¡¨æ¨¡å— -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.0-beta-3</version>
@@ -227,7 +271,7 @@
                     <outputEncoding>UTF-8</outputEncoding>
                     <reportPlugins>
                         <plugin>
-                            <!-- ²úÉú jslintºÍjsdocµÄ±¨±í£¬from  -->
+                            <!-- äº§ç”Ÿ jslintå’Œjsdocçš„æŠ¥è¡¨ï¼Œfrom  -->
                             <groupId>gr.abiss.mvn.plugins</groupId>
                             <artifactId>maven-jstools-plugin</artifactId>
                             <version>0.7</version>
