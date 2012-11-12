@@ -38,9 +38,9 @@
         </extensions>
 
         <plugins>
-            <!--
+
             <plugin>
-                < ! - - 在phantomjs环境中运行qunit, from https://code.google.com/p/phantomjs-qunit-runner? - - >
+                <!-- 在phantomjs环境中运行qunit, from https://code.google.com/p/phantomjs-qunit-runner? -->
                 <groupId>net.kennychua</groupId>
                 <artifactId>phantomjs-qunit-runner</artifactId>
                 <version>1.0.15</version>
@@ -49,19 +49,28 @@
                     <jsTestDirectory>src/test/js</jsTestDirectory>
                     <ignoreFailures>false</ignoreFailures>
                     <phantomJsExec>${phantomjs.home}/phantomjs.exe</phantomJsExec>
-                    < ! - - Optional - - >
-                    < ! - -
+                    <!-- Optional -->
+                    <!--
                     <includeLibsInDir>
                         <directory>${js.libs.include.dir}</directory>
                         <includes>
                             <include>**/*.js</include>
                         </includes>
                     </includeLibsInDir>
-                    - - >
+                    -->
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>qunit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>generate-html </goal>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-            -->
-            
+
             <plugin>
                 <!-- 压缩混淆js文件, from http://mojo.codehaus.org/webminifier-maven-plugin/usage.html? -->
                 <groupId>org.codehaus.mojo</groupId>
@@ -128,17 +137,26 @@
                         <!-- 下载js库，参考https://developers.google.com/speed/libraries/devguide? -->
                         <artifactItem>
                             <groupId>org.jquery</groupId>
-                            <artifactId>jquery</artifactId>
-                            <version>1.8.2</version>
+                            <artifactId>qunit</artifactId>
+                            <version>1.10.0</version>
                             <packaging>js</packaging>
                             <downloadUrl>
-                                http://ajax.googleapis.com/ajax/libs/{artifactId}/{version}/{artifactId}.{packaging}
+                                http://code.jquery.com/{artifactId}//{artifactId}-{version}.{packaging}
                             </downloadUrl>
                             <!--
                             <install>true</install>
                             <force>false</force>
                             <extractFile>java-unrar/java-unrar-{version}.jar</extractFile>
                             -->
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.jquery</groupId>
+                            <artifactId>qunit</artifactId>
+                            <version>1.10.0</version>
+                            <packaging>css</packaging>
+                            <downloadUrl>
+                                http://code.jquery.com/{artifactId}/{artifactId}-{version}.{packaging}
+                            </downloadUrl>
                         </artifactItem>
                     </artifactItems>
                 </configuration>
@@ -199,41 +217,56 @@
                 </configuration>
             </plugin>  
 
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.7</version>
                 <executions>
                     <execution>
-                        <!-- 帮助把js测试脚本自动套用qunit的通用html -->
+                        <! -#- 帮助把js测试脚本自动套用qunit的通用html  -#->
                         <id>qunit-html-generate</id>
                         <phase>generate-test-sources</phase>
                         <configuration>
-                            <target>
-                                <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-                                <!-- 扫描src/test/js目录，寻找所有test*.js和*test.js的文件 -->
-                                <!-- 扫描src/main/js目录，找到对应的*.js -->
-                                <!-- 同时包含并生成test*.html文件到target/generated-test目录 -->
-                                <for param="file">
+                            <target xmlns:ac="antlib:net.sf.antcontrib">
+                                <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.dependency.classpath" />
+                                <! -#- 处理qunit的js和css到变量  -#->
+                                <ac:for param="file">
                                     <path>
-                                        <fileset dir="${basedir}/test/js" includes="**/test*.js,**/*test.js"/>
+                                        <fileset dir="${project.build.directory}/dependencies/" includes="qunit*.*"/>
                                     </path>
                                     <sequential>
-                                        <propertyregex property="fname" input="@{file}" regexp=".*/([Tt]est[\-_]?(.+)|(.*[^\-_]+)[\-_]?[Tt]est)\.js" replace="\2\3" override="yes" />
-                                        <propertyregex property="fpath" input="@{file}" regexp="(.*/).+" replace="\1" override="yes" />
-                                        <if>
-                                            <available file="${basedir}/main/js/${fpath}/${fname}.js" />
-                                            <then>
-                                                <copy todir="${}">
-                                                    <fileset dir="src_dir"/>
+                                        <propertyregex property="fn" input="@{file}" regexp=".*[\\/](qunit[\-\_\.\d]+\.\w+)$" replace="\1" override="yes" />
+                                        <propertyregex property="ff" input="@{file}" regexp=".*[\\/]qunit[\-\_\.\d]+\.(\w+)$" replace="\1" override="yes" />
+                                        <ac:var name="qunit-${ff}" value="${fn}" />
+                                    </sequential>
+                                </ac:for>
+                                <! -#- 扫描src/test/js目录，寻找所有test*.js和*test.js的文件  -#->
+                                <! -#- 扫描src/main/js目录，找到对应的*.js  -#->
+                                <! -#- 同时包含并生成test*.html文件到target/generated-test目录  -#->
+                                <ac:for param="file">
+                                    <path>
+                                        <fileset dir="${basedir}/src/test/js" includes="**/test*.js,**/*test.js"/>
+                                    </path>
+                                    <sequential>
+                                        <propertyregex property="fname" input="@{file}" regexp=".*[\\/]([Tt]est[\-_]?(.+)|(.*[^\-_]+)[\-_]?[Tt]est)\.js" replace="\2\3" override="yes" />
+                                        <ac:if>
+                                            <available file="${basedir}/src/main/js/${fname}.js" />
+                                            <ac:then>
+                                                <copy file="${basedir}/src/test/resources/qunit-template.html" tofile="${project.build.testOutputDirectory}/test-${fname}.html" overwrite="true" encoding="utf-8">
                                                     <filterset>
-                                                        <filter token="TITLE" value="Foo Bar"/>
+                                                        <filter token="js-name" value="${fname}"/>
+                                                        <filter token="qunit-js" value="${qunit-js}"/>
+                                                        <filter token="qunit-css" value="${qunit-css}"/>
                                                     </filterset>
                                                 </copy>                                                
-                                            </then>
-                                        </if>
+                                            </ac:then>
+                                        </ac:if>
                                     </sequential>
-                                </for>
+                                </ac:for>
+                                <copy todir="${project.build.testOutputDirectory}/qunit" encoding="utf-8">
+                                    <fileset dir="${project.build.directory}/dependencies/" includes="qunit*.*" />
+                                </copy>
                             </target>
                         </configuration>
                         <goals>
@@ -260,7 +293,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
+            -->
 
             <plugin>
                 <!-- 报表模块 -->

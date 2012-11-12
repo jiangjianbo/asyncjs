@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>QUnit basic example</title>
-    <link rel="stylesheet" href="/resources/qunit.css">
-</head>
-<body>
-<div id="qunit"></div>
-<div id="qunit-fixture"></div>
-<script src="/resources/qunit.js"></script>
-<script>
     /*
     test( "a basic test example", function() {
         var value = "hello";
@@ -105,6 +93,3 @@
         textArea.value = textArea.value + text + "\r\n";
     }
 
-</script>
-</body>
-</html>
