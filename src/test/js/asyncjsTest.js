@@ -5,6 +5,45 @@
     });
     */
 
+    test("test async while", function(){
+        var counter = 0;
+        equal(null, asyncWhile(function(){
+            counter++;
+            return counter != 4;
+        }, 1, true));
+        setTimeout(function(){
+            equal(counter,4, "while cycle 4 times" );
+        }, 2000);
+    });
+
+    test("test async while without auto start", function () {
+        var counter = 0, ctrl;
+        notEqual(null, ctrl = asyncWhile(function(){
+            counter++;
+            return counter != 4;
+        }, 1, false));
+
+        ctrl.start();
+        setTimeout(function(){
+            equal(counter,4, "while cycle 4 times" );
+        }, 2000);
+    });
+
+    test("test asyncEach", function () {
+        var result = [], arr = [];
+        for(var i = 0; i < 10; ++i)
+            arr.push(i);
+        asyncEach(arr, function(val, idx){
+            equal(val, idx, "val " + val + " == " + idx);
+            result.push(val);
+        });
+        setTimeout(function(){
+            result.sort();
+            for(var i = 0; i < 10; ++i)
+                equal(result[i], arr[i], "result[" + i + "] = " + result[i] + " == " + arr[i]);
+        }, 2000);
+    });
+    
     function testAsync()
     {/*
         var a = [];

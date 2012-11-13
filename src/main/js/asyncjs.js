@@ -17,6 +17,9 @@
  */
 (function(){
 
+    /** @ignore  */
+    var root = this;
+
     /** @ignore internal use, add more random */
     var __afl_forDemo = true;
 
@@ -46,12 +49,12 @@
     /** async while, repeat until fn return false
         @name asyncWhile
         @function
-        @param {AsyncWhileCallback} fn
+        @param {AsyncWhileCallback} fn callback
         @param {Number} [interval]
         @param {Boolean} [autoStart=true]
         @returns {AsyncWhileController} only if autoStart is false
      */
-    function asyncWhile(fn, interval, autoStart)
+    root.asyncWhile = function (fn, interval, autoStart)
     {
         if( fn == null || typeof(fn) !== "function" )
             return null;
@@ -76,7 +79,7 @@
                     },
                     abort : function(){abort = true;}
                 };
-    }
+    };
 
     /** parallel foreach
         @name asyncEach
@@ -84,7 +87,7 @@
         @param {Array} arr
         @param {Function} callback
      */
-    function asyncEach(arr, callback)
+    root.asyncEach = function (arr, callback)
     {
         if( arr == null || arr.length === 0 || typeof(callback) !== "function" )
             return;
@@ -101,7 +104,7 @@
             setTimeout(wrapper(arr[idx],idx), 1 + (__afl_forDemo ? Math.random()*100 : 0)); // 为了调试和演示的原因加了随机数
             idx ++;
         }
-    }
+    };
 
     /** async thread controller
         @name AsyncController
@@ -144,7 +147,7 @@
 
         @return {AsyncController} controller
      */
-    function asyncSeqEach(arr, callback, abortWhenError)
+    root.asyncSeqEach = function (arr, callback, abortWhenError)
     {
         if( arr == null || arr.length <= 0 || typeof(callback) !== "function" )
             return {awake: function(){}, sleep: function(){}, abort: function(){}};
@@ -182,7 +185,7 @@
         });
 
         return ctrl;
-    }
+    };
 
     /** async sequence function
         @name AsyncSeqCallback
@@ -199,7 +202,7 @@
         @param {Boolean} [abortWhenError=false]
         @return {AsyncController} controller
      */
-    function asyncSeq(funcArray, chainName, abortWhenError)
+    root.asyncSeq = function (funcArray, chainName, abortWhenError)
     {
         if( typeof(funcArray) === "function" )
             return asyncSeq([funcArray], chainName, abortWhenError);
@@ -267,6 +270,6 @@
         },1 + (__afl_forDemo ? Math.random()*100 : 0)); // 为了调试和演示的原因，加了延迟启动
 
         return tInfo.controller;
-    }
+    };
 
 }).call(this);

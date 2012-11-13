@@ -124,63 +124,6 @@
             </plugin>
             
             <plugin>
-                <groupId>com.savage7.maven.plugins</groupId>
-                <artifactId>maven-external-dependency-plugin</artifactId>
-                <version>0.6-SNAPSHOT</version>
-                <inherited>false</inherited>
-                <configuration>
-                    <stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
-                    <createChecksum>true</createChecksum>
-                    <skipChecksumVerification>false</skipChecksumVerification>
-                    <force>false</force>
-                    <artifactItems>
-                        <!-- 下载js库，参考https://developers.google.com/speed/libraries/devguide? -->
-                        <artifactItem>
-                            <groupId>org.jquery</groupId>
-                            <artifactId>qunit</artifactId>
-                            <version>1.10.0</version>
-                            <packaging>js</packaging>
-                            <downloadUrl>
-                                http://code.jquery.com/{artifactId}//{artifactId}-{version}.{packaging}
-                            </downloadUrl>
-                            <!--
-                            <install>true</install>
-                            <force>false</force>
-                            <extractFile>java-unrar/java-unrar-{version}.jar</extractFile>
-                            -->
-                        </artifactItem>
-                        <artifactItem>
-                            <groupId>org.jquery</groupId>
-                            <artifactId>qunit</artifactId>
-                            <version>1.10.0</version>
-                            <packaging>css</packaging>
-                            <downloadUrl>
-                                http://code.jquery.com/{artifactId}/{artifactId}-{version}.{packaging}
-                            </downloadUrl>
-                        </artifactItem>
-                    </artifactItems>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>clean-external-dependencies</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:clean-external -->
-                            <goal>clean-external</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>resolve-install-external-dependencies</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external -->
-                            <goal>resolve-external</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <plugin>
                 <!-- 标准的resource插件，设置忽略pdf和swf -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -218,6 +161,63 @@
             </plugin>  
 
             <!--
+            <plugin>
+                <groupId>com.savage7.maven.plugins</groupId>
+                <artifactId>maven-external-dependency-plugin</artifactId>
+                <version>0.6-SNAPSHOT</version>
+                <inherited>false</inherited>
+                <configuration>
+                    <stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
+                    <createChecksum>true</createChecksum>
+                    <skipChecksumVerification>false</skipChecksumVerification>
+                    <force>false</force>
+                    <artifactItems>
+                        <! -#- 下载js库，参考https://developers.google.com/speed/libraries/devguide?  -#->
+                        <artifactItem>
+                            <groupId>org.jquery</groupId>
+                            <artifactId>qunit</artifactId>
+                            <version>1.10.0</version>
+                            <packaging>js</packaging>
+                            <downloadUrl>
+                                http://code.jquery.com/{artifactId}//{artifactId}-{version}.{packaging}
+                            </downloadUrl>
+                            <! -#-
+                            <install>true</install>
+                            <force>false</force>
+                            <extractFile>java-unrar/java-unrar-{version}.jar</extractFile>
+                             -#->
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.jquery</groupId>
+                            <artifactId>qunit</artifactId>
+                            <version>1.10.0</version>
+                            <packaging>css</packaging>
+                            <downloadUrl>
+                                http://code.jquery.com/{artifactId}/{artifactId}-{version}.{packaging}
+                            </downloadUrl>
+                        </artifactItem>
+                    </artifactItems>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>clean-external-dependencies</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <! -#- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:clean-external  -#->
+                            <goal>clean-external</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>resolve-install-external-dependencies</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <! -#- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external  -#->
+                            <goal>resolve-external</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
