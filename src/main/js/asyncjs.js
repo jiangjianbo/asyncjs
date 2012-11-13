@@ -150,7 +150,7 @@
     root.asyncSeqEach = function (arr, callback, abortWhenError)
     {
         if( arr == null || arr.length <= 0 || typeof(callback) !== "function" )
-            return {awake: function(){}, sleep: function(){}, abort: function(){}};
+            return null;
 
         var idx = 0, sleep = false, abort = false;
         var ctrl = {
@@ -194,66 +194,66 @@
         @returns {String} return SLEEP,REPEAT,ABORT to control thread state
      */
 
-    /** asynchronous and sequenced call each function of funcArray in same chainName.
+    /** asynchronous and sequenced call each function of funcArray in same queueName.
         @name asyncSeq
         @function
-        @param {AsyncSeqCallback[]} funcArray
-        @param {String} [chainName]
-        @param {Boolean} [abortWhenError=false]
+        @param {AsyncSeqCallback[]} funcArray functions will be executed one by one
+        @param {String} [queueName] name of the execution queue
+        @param {Boolean} [abortWhenError=false] abort when error
         @return {AsyncController} controller
      */
-    root.asyncSeq = function (funcArray, chainName, abortWhenError)
+    root.asyncSeq = function (funcArray, queueName, abortWhenError)
     {
         if( typeof(funcArray) === "function" )
-            return asyncSeq([funcArray], chainName, abortWhenError);
+            return asyncSeq([funcArray], queueName, abortWhenError);
 
         if( funcArray == null || funcArray.length == 0 )
             return null;
 
-        if( chainName == null || chainName.length == 0 || /^\s*$/.test(chainName) ) chainName = "__default_seq_chain__";
-        var tInfos = asyncSeq.chainInfos = asyncSeq.chainInfos || {};
-        if( tInfos[chainName] == null )
-            tInfos[chainName] = {
-                        name : chainName,
+        if( queueName == null || queueName.length == 0 || /^\s*$/.test(queueName) ) queueName = "__default_seq_chain__";
+        var qInfos = asyncSeq.queueInfos = asyncSeq.queueInfos || {};
+        if( qInfos[queueName] == null )
+            qInfos[queueName] = {
+                        name : queueName,
                         count : 0,
                         currentIndex : -1,
                         abort : false,
                         sleep: false,
                         controller: {
-                                awake : function(){tInfos[chainName].sleep = false;},
-                                sleep : function(){tInfos[chainName].sleep = true;},
-                                abort : function(){tInfos[chainName].abort = true;}
+                                awake : function(){qInfos[queueName].sleep = false;},
+                                sleep : function(){qInfos[queueName].sleep = true;},
+                                abort : function(){qInfos[queueName].abort = true;}
                             }
                     };
-        var i, tInfo = tInfos[chainName];
+        var i, inf = qInfos[queueName];
         var wrapper = function(item, tIndex){
             return function(){
-                if( tInfo.abort ) return false;
-                if( tInfo.sleep ) return true;
+                if( inf.abort ) return false;
+                if( inf.sleep ) return true;
 
-                if( tInfo.currentIndex < tIndex )
+                if( inf.currentIndex < tIndex )
                     return true;
-                else if( tInfo.currentIndex == tIndex )
+                else if( inf.currentIndex == tIndex )
                 {
                     try{
-                        var stat = item(tInfo.controller);
+                        var stat = item(inf.controller);
                         if( "REPEAT" === stat )
                             return true;
                         else if( "SLEEP" === stat )
-                            tInfo.sleep = true;
+                            inf.sleep = true;
                         else if( "ABORT" === stat )
                         {
-                            tInfo.abort = true;
+                            inf.abort = true;
                             return false;
                         }
                     }catch(e){
-                        if( abortWhenError === true ) tInfo.abort = true;
+                        if( abortWhenError === true ) inf.abort = true;
                     }
-                    tInfo.currentIndex ++;
+                    inf.currentIndex ++;
                 }
                 else
                 {
-                    if( abortWhenError === true ) tInfo.abort = true;
+                    if( abortWhenError === true ) inf.abort = true;
                 }
                 return false;
             };
@@ -261,15 +261,78 @@
 
         for(i = 0; i < funcArray.length; ++i)
         {
-            asyncWhile(wrapper(funcArray[i], tInfo.count ++));
+            asyncWhile(wrapper(funcArray[i], inf.count ++));
         }
 
         setTimeout(function(){
-            if( tInfo.count > 0 && tInfo.currentIndex == -1 )
-                tInfo.currentIndex = 0;
+            if( inf.count > 0 && inf.currentIndex == -1 )
+                inf.currentIndex = 0;
         },1 + (__afl_forDemo ? Math.random()*100 : 0)); // 为了调试和演示的原因，加了延迟启动
 
-        return tInfo.controller;
+        return inf.controller;
+    };
+
+    /** @ignore */
+    var _signalMaps = {};
+
+    /** signal handler function
+     * @name SignalHandler
+     * @function
+     * @param sigName
+     */
+
+    /**
+     * raise signal, and notify all registered handler
+     * @param {String} sigName signal name
+     */
+    root.signal = function(sigName){
+        if( sigName == null || sigName.length == 0 || /^\s*$/.test(sigName) )
+            return new TypeError("empty sigName");
+
+        var list = _signalMaps[sigName];
+        if(  list && list.length > 0 ){
+            root.asyncEach(list, function(fn){
+                fn(sigName);
+            });
+        }
+    };
+
+    /**
+     * register signal handler
+     * @param {String} sigName signal name
+     * @param {SignalHandler} fnHandler signal event handler
+     */
+    root.onSignal = function(sigName, fnHandler){
+        if( sigName == null || sigName.length == 0 || /^\s*$/.test(sigName) )
+            return new TypeError("empty sigName");
+
+        if( fnHandler == null || typeof(fnHandler) !== "function" )
+            return new TypeError("fnHandler must be function");
+
+        var list = _signalMaps[sigName] = _signalMaps[sigName] || [];
+        // find duplicate
+        var i = 0;
+        while( i < list.length ){
+            if( list[i++] === fnHandler )
+                return;
+        }
+
+        list.push(fnHandler);
+    };
+
+    /**
+     * create a stub waiting signal for asyncSeq and asyncSeqEach
+     * @param sigName
+     * @return {AsyncSeqCallback|AsyncSeqEachCallback}
+     */
+    root.waitSignal = function(sigName){
+        var triggered = false;
+        onSignal(sigName, function(sig){
+            triggered = true;
+        });
+        return function(){
+            return triggered ? "NEXT" : "REPEAT";
+        };
     };
 
 }).call(this);
