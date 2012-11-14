@@ -58,13 +58,14 @@
         asyncSeqEach(arr, function(val, idx){
             equal(val, idx, "val " + val + " == " + idx);
             result.push(val);
+
+            if(idx == 9){
+                equal(result.length, arr.length, "result and arr are same length");
+                for(var i = 0; i < 10; ++i)
+                    equal(result[i], arr[i], "result[" + i + "] = " + result[i] + " == " + arr[i]);
+                start();
+            }
         });
-        setTimeout(function(){
-            equal(result.length, arr.length, "result and arr are same length");
-            for(var i = 0; i < 10; ++i)
-                equal(result[i], arr[i], "result[" + i + "] = " + result[i] + " == " + arr[i]);
-            start();
-        }, 2000);
     });
 
     test("test asyncSeqEach with controller", function () {
@@ -72,25 +73,20 @@
         var result = [], arr = [];
         for(var i = 0; i < 10; ++i)
             arr.push(i);
-        var first = true;
         var ctrl = asyncSeqEach(arr, function(val, idx){
-            if( first ){
-                first = false;
-                ctrl.sleep();
-                result.push(val);
-                return;
-            }
-            equal(val, idx, " val " + val + " == " + idx);
+            equal(val, idx, " asyncSeqEach callback val " + val + " == " + idx);
             result.push(val);
-        });
-        notEqual(ctrl, null, "ctrl return null");
-        ctrl.awake();
-        setTimeout(function(){
-            equal(result.length, arr.length, "result and arr are same length");
-            for(var i = 0; i < 10; ++i)
-                equal(result[i], arr[i], "result[" + i + "] = " + result[i] + " == " + arr[i]);
-            start();
-        }, 2000);
+
+            if( idx == 9 )
+                setTimeout(function(){
+                    equal(result.length, arr.length, "asyncSeqEach result and arr are same length");
+                    for(var i = 0; i < 10; ++i)
+                        equal(result[i], arr[i], "asyncSeqEach result[" + i + "] = " + result[i] + " == " + arr[i]);
+                    start();
+                }, 2000);
+        }, false);
+        ok(ctrl, "ctrl return null");
+        ctrl.start();
     });
 
     test("test asyncSeqEach abort", function () {
@@ -106,7 +102,7 @@
         });
 
         setTimeout(function(){
-            equal(result.length+1, arr.length, "result and arr are same length");
+            equal(result.length+1, arr.length, "result length < arr length");
             equal(result[3], 4, "result[3] == 4 not 3");
             start();
         }, 2000);
@@ -122,7 +118,7 @@
             if( idx == 3 )
                 throw new Error("error when 3");
             result.push(val);   // when idx = 3, will skip by throw
-        }, true);
+        }, true, true);
 
         setTimeout(function(){
             equal(result.length, 3, "result length = 3");
@@ -134,7 +130,7 @@
     test("test signal", function () {
         stop();
         onSignal("test", function(sig){
-            assert(sig, "test", "signal received");
+            equal(sig, "test", "signal received");
             start();
         });
 
@@ -142,91 +138,77 @@
 
     });
 
-    function testAsync()
-    {/*
-        var a = [];
-        for(var i = 0; i < 10; ++i)
-            a.push("asyncEach - " + i);
-            
-        asyncEach(a, function(item){println(item);});
-
-        var rep0 = 0;
-        var ase = asyncSeqEach(a, function(item){
-                                        println("SEQ - " + item);
-                                        if( rep0 == 6 )
-                                        {
-                                            setTimeout(function(){
-                                                ase.awake();    
-                                            }, 500);
-                                            rep0 ++;
-                                            return "SLEEP";
-                                        }
-                                        else if( rep0 == 8 )
-                                        {
-                                            println("SEQ ABORT");
-                                            return "ABORT";
-                                        }
-                                        else
-                                            return rep0 ++ == 4 ? "REPEAT" : "NEXT";
-                                    });
-        
-        var rep1 = 0;
-        var aseq = asyncSeq([function(){println("aSyncSeq -0 ");}
-            , function(){println("aSyncSeq -1 ");}
-            , function(){println("aSyncSeq -2 ");}
-            , function(){println("aSyncSeq -3 ");}
-            , function(){println("aSyncSeq -4 ");}
-            , function(){println("aSyncSeq -5 "); return rep1++ < 3? "REPEAT" : "NEXT";}
-            , function(){println("aSyncSeq -6 ");}
-            , function(){println("aSyncSeq -7 ");}
-            , function(){
-                    println("aSyncSeq -8 sleeping");
-                    setTimeout(function(){
-                            println("aSyncSeq -8 waking");
-                            aseq.awake();
-                        }, 600);
-                    return "SLEEP";
-                }
-            , function(){println("aSyncSeq -9 ");}
-            , function(){
-                    println("aSyncSeq -10 ABORT before 11");
-                    aseq.abort();
-                }
-            , function(){println("aSyncSeq -11 ");}
+    test("test asyncSeq", function () {
+        stop();
+        var val = 0;
+        asyncSeq([
+            function(){ val += 1; },
+            function(){ val += 2; },
+            function(){ equal(val, 3, "asyncSeq sum 1 + 2 = 3")},
+            function(){ val += 4; },
+            function(){ equal(val, 7, "asyncSeq sum 1 + 2 + 4 = 7")},
+            function(){ val += 8; },
+            function(){ equal(val, 15, "asyncSeq sum 1 + 2 + 4 + 8 = 15")},
+            function(){start();}
         ]);
+    });
 
-        asyncSeq([function(){println("aSyncSeq test-chain -a0 ");}
-            , function(){println("aSyncSeq test-chain -a1 ");}
-            , function(){println("aSyncSeq test-chain -a2 ");}
-            , function(){println("aSyncSeq test-chain -a3 ");}
-            , function(){println("aSyncSeq test-chain -a4 ");}
-            , function(){println("aSyncSeq test-chain -a5 ");}
-            , function(){println("aSyncSeq test-chain -a6 ");}
-            , function(){println("aSyncSeq test-chain -a7 ");}
-            , function(){println("aSyncSeq test-chain -a8 ");}
-        ], "test-chain");
-*/
-        var itNest = asyncSeqEach(["nest 1","nest 2","nest 3","nest 4"], function(item, i,ctrl){
-            ctrl.sleep();
-            println("--- " + item);
-            asyncSeq([function(){println("nest aSyncSeq -a0 ");}
-                , function(){println("nest aSyncSeq -a1 ");}
-                , function(){println("nest aSyncSeq -a2 ");}
-                , function(){println("nest aSyncSeq -a3 "); ctrl.awake();}
-            ], "nest");
-        });
-    }
+    test("test asyncSeq manual start", function () {
+        stop();
+        var val = 0;
+        var ctrl = asyncSeq([
+            function(){ val += 1; },
+            function(){ val += 2; },
+            function(){ equal(val, 3, "asyncSeq sum 1 + 2 = 3")},
+            function(){ val += 4; },
+            function(){ equal(val, 7, "asyncSeq sum 1 + 2 + 4 = 7")},
+            function(){ val += 8; },
+            function(){ equal(val, 15, "asyncSeq sum 1 + 2 + 4 + 8 = 15")},
+            function(){start();}
+        ], "queue", false);
+        ok(ctrl, "controller is not null");
+        ctrl.start();
+    });
 
-    var textArea = null;
-    
-    function println(text)
-    {
-        if( textArea == null )
-        {
-            textArea = document.getElementById("text");
-            textArea.value = "";
-        }
-        
-        textArea.value = textArea.value + text + "\r\n";
-    }
+    test("test asyncSeq abort(default continue)", function () {
+        stop();
+        var val = 0;
+        asyncSeq([
+            function(){ val += 1; },
+            function(){ val += 2; },
+            function(){ equal(val, 3, "asyncSeq sum 1 + 2 = 3")},
+            function(){ val += 4; },
+            function(){ equal(val, 7, "asyncSeq sum 1 + 2 + 4 = 7")},
+            function(){
+                setTimeout(function(){
+                    equal(val, 15, "asyncSeq last val = 15");
+                    start();
+                }, 2000);
+                throw new Error("abort asyncSeq");
+            },
+            function(){ val += 8; },
+            function(){ equal(val, 15, "asyncSeq sum 1 + 2 + 4 + 8 = 15")}
+        ]);
+    });
+
+    test("test asyncSeq abortWhenError", function () {
+        stop();
+        var val = 0;
+        asyncSeq([
+            function(){ val += 1; },
+            function(){ val += 2; },
+            function(){ equal(val, 3, "asyncSeq sum 1 + 2 = 3")},
+            function(){ val += 4; },
+            function(){ equal(val, 7, "asyncSeq sum 1 + 2 + 4 = 7")},
+            function(){
+                setTimeout(function(){
+                    equal(val, 7, "asyncSeq last val = 7, because error exit");
+                    start();
+                }, 2000);
+                throw new Error("abort asyncSeq");
+            },
+            function(){ val += 8; },
+            function(){ equal(val, 15, "asyncSeq sum 1 + 2 + 4 + 8 = 15")}
+        ], "qq", true, true);
+    });
 

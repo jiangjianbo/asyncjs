@@ -14,13 +14,14 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
         <phantomjs.home>D:/tools/dev/test/phantomjs-1.7.0-windows</phantomjs.home>
     </properties>
-
     <build>
         <outputDirectory>target/scripts</outputDirectory>
         <testOutputDirectory>target/test-scripts</testOutputDirectory>
-        
+
         <resources>
             <resource>
                 <directory>src/main/js</directory>
@@ -84,15 +85,10 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jsCompressorType>YUI</jsCompressorType>
-                    <jsSplitPoints>
-                        <!-- html文件中每个property中name定义的js文件之前的js文件将被合并成value对于的名字 -->
-                        <property>
-                            <name>js/framework.js</name>
-                            <value>myframeworkfilename</value>
-                        </property>
-                    </jsSplitPoints>
-                    <yuiJSObfuscate>false</yuiJSObfuscate>
+                    <jsCompressorType>CLOSURE</jsCompressorType>
+                    <sourceFolder>${project.build.outputDirectory}</sourceFolder>
+                    <destinationFolder>${project.build.directory}/min</destinationFolder>
+                    <closureCompilationLevel>ADVANCED_OPTIMIZATIONS</closureCompilationLevel>
                 </configuration>
             </plugin>
             

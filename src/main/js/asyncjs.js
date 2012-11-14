@@ -143,17 +143,19 @@
         @function
         @param {Array} arr array of objects
         @param {AsyncSeqEachCallback} callback
+        @param {Boolean} [autoStart=true]
         @param {Boolean} [abortWhenError=false]
 
         @return {AsyncController} controller
      */
-    root.asyncSeqEach = function (arr, callback, abortWhenError)
+    root.asyncSeqEach = function (arr, callback, autoStart, abortWhenError)
     {
         if( arr == null || arr.length <= 0 || typeof(callback) !== "function" )
             return null;
 
-        var idx = 0, sleep = false, abort = false;
+        var idx = 0, sleep = false === autoStart, abort = false;
         var ctrl = {
+                start : function(){sleep = false;},
                 awake : function(){sleep = false;},
                 sleep : function(){sleep = true;},
                 abort : function(){sleep = true;}
@@ -199,10 +201,11 @@
         @function
         @param {AsyncSeqCallback[]} funcArray functions will be executed one by one
         @param {String} [queueName] name of the execution queue
+        @param {Boolean} [autoStart=true]
         @param {Boolean} [abortWhenError=false] abort when error
         @return {AsyncController} controller
      */
-    root.asyncSeq = function (funcArray, queueName, abortWhenError)
+    root.asyncSeq = function (funcArray, queueName, autoStart, abortWhenError)
     {
         if( typeof(funcArray) === "function" )
             return asyncSeq([funcArray], queueName, abortWhenError);
@@ -218,8 +221,9 @@
                         count : 0,
                         currentIndex : -1,
                         abort : false,
-                        sleep: false,
+                        sleep: false === autoStart,
                         controller: {
+                                start : function(){qInfos[queueName].sleep = false;},
                                 awake : function(){qInfos[queueName].sleep = false;},
                                 sleep : function(){qInfos[queueName].sleep = true;},
                                 abort : function(){qInfos[queueName].abort = true;}
@@ -272,14 +276,14 @@
         return inf.controller;
     };
 
-    /** @ignore */
-    var _signalMaps = {};
-
     /** signal handler function
      * @name SignalHandler
      * @function
      * @param sigName
      */
+
+    /** @ignore */
+    var _signalMaps = {};
 
     /**
      * raise signal, and notify all registered handler
