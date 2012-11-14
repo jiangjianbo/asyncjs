@@ -5,7 +5,7 @@
     <groupId>org.asyncjs</groupId>
     <artifactId>asyncjs</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>js</packaging>
+    <packaging>jar</packaging>
 
     <name>lightweight asynchronized javascript library</name>
     <url>http://www.asyncjs.org</url>
@@ -16,6 +16,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+        <sourceDirectory>${basedir}/src/main/js</sourceDirectory>
+        <testSourceDirectory>${basedir}/src/test/js</testSourceDirectory>
+
+        <skipTests>true</skipTests>
+        <maven.test.skip>true</maven.test.skip>
         <phantomjs.home>D:/tools/dev/test/phantomjs-1.7.0-windows</phantomjs.home>
     </properties>
     <build>
@@ -24,21 +29,22 @@
 
         <resources>
             <resource>
-                <directory>src/main/js</directory>
+                <directory>${sourceDirectory}</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
 
-        <extensions>
-            <!-- 扩展maven，使其可以识别js类型 -->
-            <extension>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>javascript-maven-plugin</artifactId>
-                <version>2.0.0-alpha-1</version>
-            </extension>
-        </extensions>
-
         <plugins>
+
+            <!-- 忽略java的单元测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12.4</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <!-- 在phantomjs环境中运行qunit, from https://code.google.com/p/phantomjs-qunit-runner? -->
@@ -46,8 +52,8 @@
                 <artifactId>phantomjs-qunit-runner</artifactId>
                 <version>1.0.15</version>
                 <configuration>
-                    <jsSourceDirectory>src/main/js</jsSourceDirectory>
-                    <jsTestDirectory>src/test/js</jsTestDirectory>
+                    <jsSourceDirectory>${sourceDirectory}</jsSourceDirectory>
+                    <jsTestDirectory>${testSourceDirectory}</jsTestDirectory>
                     <ignoreFailures>false</ignoreFailures>
                     <phantomJsExec>${phantomjs.home}/phantomjs.exe</phantomJsExec>
                     <!-- Optional -->
@@ -72,26 +78,7 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <!-- 压缩混淆js文件, from http://mojo.codehaus.org/webminifier-maven-plugin/usage.html? -->
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>webminifier-maven-plugin</artifactId>
-                <version>1.0.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>minify-js</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <jsCompressorType>CLOSURE</jsCompressorType>
-                    <sourceFolder>${project.build.outputDirectory}</sourceFolder>
-                    <destinationFolder>${project.build.directory}/min</destinationFolder>
-                    <closureCompilationLevel>ADVANCED_OPTIMIZATIONS</closureCompilationLevel>
-                </configuration>
-            </plugin>
-            
+
             <plugin>
                 <!-- 检查js代码的规范，from http://mojo.codehaus.org/jslint-maven-plugin/index.html? -->
                 <groupId>org.codehaus.mojo</groupId>
@@ -131,30 +118,71 @@
                     </nonFilteredFileExtensions>
                 </configuration>
             </plugin>
-                        
+
             <plugin>
-                <!-- 生成jsdoc文档， from https://code.google.com/p/jsdoctk-plugin/ -->
-                <groupId>nl.windgazer</groupId>
-                <artifactId>jsdoctk-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <template>jsdoc</template> <!-- Alternatives are not pre-installed for version 2.x-->
-                    <directory>${project.build.directory}/jsdoc</directory>
-                    <recurse>5</recurse>
-                    <ext>js</ext>
-                    <allfunctions>true</allfunctions>
-                    <Allfunctions>false</Allfunctions>
-                    <privateOption>false</privateOption>
-                    <!-- If you're using the maven default setup this alternative is sometimes required
-                    to make the plugin work: ${basedir}/src/main/webapp/ -->
-                    <srcDir>${basedir}/src/main/js</srcDir>
-                    <exclude><!-- Since jsdoctk 2.3.2 -->
-                        <!--
-                        <param>regularexpression</param>
-                        -->
-                    </exclude>
-                </configuration>
-            </plugin>  
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <!-- 最小化 js -->
+                        <id>min-js</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <taskdef name="jscomp" classname="com.google.javascript.jscomp.ant.CompileTask" />
+
+                                <!-- compilationLevel="advanced|simple|whitespace" -->
+                                <jscomp compilationLevel="simple" warning="verbose" debug="false"
+                                        encoding="${project.build.sourceEncoding}" outputEncoding="${project.build.sourceEncoding}"
+                                        output="${project.build.outputDirectory}/asyncjs-min.js">
+                                    <!-- 外部依赖的文件列表 -->
+                                    <!--
+                                    <externs dir="${basedir}/src">
+                                        <file name="extern.js"/>
+                                    </externs>
+                                    <path>
+                                        <fileset dir="${sourceDirectory}">
+                                            <file name="**/*.js"/>
+                                        </fileset>
+                                    </path>
+                                    -->
+                                    <sources dir="${project.build.outputDirectory}">
+                                        <file name="asyncjs.js"/>
+                                    </sources>
+                                </jscomp>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>ant-contrib</groupId>
+                        <artifactId>ant-contrib</artifactId>
+                        <version>1.0b3</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>ant</groupId>
+                                <artifactId>ant</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant</artifactId>
+                        <version>1.8.4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.google.javascript</groupId>
+                        <artifactId>closure-compiler</artifactId>
+                        <version>r2180</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
 
             <!--
             <plugin>
@@ -332,34 +360,18 @@
             <groupId>org.prototypejs</groupId>
             <artifactId>prototype</artifactId>
             <version>1.5.1.1</version>
-            <type>js</type>
+            <type>javascript</type>
         </dependency>
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>qunit-amd</artifactId>
             <version>1.5.0-alpha-1</version>
-            <type>js</type>
+            <type>javascript</type>
         </dependency>
         -->
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>jsdoctk1</id>
-            <url>http://jsdoctk-plugin.googlecode.com/svn/repo</url>
-        </repository>
-    </repositories>
     <pluginRepositories>
-        <pluginRepository>
-            <id>jsdoctk2</id>
-            <url>http://jsdoctk-plugin.googlecode.com/svn/repo</url>
-        </pluginRepository>
-        <!--
-        <pluginRepository>
-            <id>codehause1</id>
-            <url>http://snapshots.repository.codehaus.org</url>
-        </pluginRepository>
-        -->
         <pluginRepository>
             <id>ossrh</id>
             <name>Sonatype OSS Repository</name>

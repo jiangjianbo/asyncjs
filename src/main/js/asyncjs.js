@@ -287,6 +287,7 @@
 
     /**
      * raise signal, and notify all registered handler
+     * @function
      * @param {String} sigName signal name
      */
     root.signal = function(sigName){
@@ -303,6 +304,7 @@
 
     /**
      * register signal handler
+     * @function
      * @param {String} sigName signal name
      * @param {SignalHandler} fnHandler signal event handler
      */
@@ -326,6 +328,7 @@
 
     /**
      * create a stub waiting signal for asyncSeq and asyncSeqEach
+     * @function
      * @param sigName
      * @return {AsyncSeqCallback|AsyncSeqEachCallback}
      */
