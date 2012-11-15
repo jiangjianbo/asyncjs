@@ -1,15 +1,9 @@
 /**
     @fileoverview Lightweight Asynchronous Function Library.
+    轻量级的异步运行函数库
 
     @author jiangjianbo
     @version 0.1
-    
-    <h2>Change Log:</h2>
-    <ul>
-        <li>2012-11-08 first edition completed
-        <li>2012-11-08 change chain to thread, and add thread wait
-        <li>2012-11-10 crate maven project for AFL
-    </ul>
 */
 
 /**
@@ -17,44 +11,48 @@
  */
 (function(){
 
-    /** @ignore  */
+    /** 此时 root 指向window或global对象
+     * @ignore  */
     var root = this;
 
-    /** @ignore internal use, add more random */
+    /**
+     * 内部使用，增加随机性
+     * @ignore  */
     var __afl_forDemo = true;
 
-    /** async while controller
+    /**
+     * asyncWhile的运行控制对象
         @name AsyncWhileController
         @class
      */
 
-    /** start async while
+    /** 启动
         @name start
         @function
         @memberOf AsyncWhileController
      */
 
-    /** abort async while
+    /** 终止
         @name abort
         @function
         @memberOf AsyncWhileController
      */
 
-    /** async while callback function
+    /** 异步循环的回调函数
         @name AsyncWhileCallback
         @function
-        @returns {Boolean} exit when false, others continue
+        @returns {Boolean} 返回false退出循环，否则继续
      */
 
-    /** async while, repeat until fn return false
+    /** 异步循环，直到回调函数返回false才退出
         @name asyncWhile
         @function
-        @param {AsyncWhileCallback} fn callback
-        @param {Number} [interval]
-        @param {Boolean} [autoStart=true]
-        @returns {AsyncWhileController} only if autoStart is false
+        @param {AsyncWhileCallback} fn 回调函数
+        @param {Number} [interval] 每次循环间隔时间
+        @param {Boolean} [autoStart=true] 自动启动循环
+        @returns {AsyncWhileController|null} 在autoStart=true的时候返回循环的运行控制对象，否则返回null
      */
-    root.asyncWhile = function (fn, interval, autoStart)
+    var asyncWhile = root.asyncWhile = function (fn, interval, autoStart)
     {
         if( fn == null || typeof(fn) !== "function" )
             return null;
@@ -81,13 +79,14 @@
                 };
     };
 
-    /** parallel foreach
+    /**
+     * 并发遍历数组元素
         @name asyncEach
         @function
-        @param {Array} arr
-        @param {Function} callback
+        @param {Array} arr 要遍历的数组
+        @param {Function} callback 回调函数
      */
-    root.asyncEach = function (arr, callback)
+    var asyncEach = root.asyncEach = function (arr, callback)
     {
         if( arr == null || arr.length === 0 || typeof(callback) !== "function" )
             return;
@@ -106,49 +105,62 @@
         }
     };
 
-    /** async thread controller
+    /**
+     * 异步运行控制器
         @name AsyncController
         @class
      */
 
-    /** abort thread
+    /**
+     * 启动异步运行
+     @name start
+     @function
+     @memberOf AsyncController
+     */
+
+    /**
+     * 终止异步运行
         @name abort
         @function
         @memberOf AsyncController
      */
 
-    /** sleep thread
-        @name start
+    /**
+     * 暂停异步运行
+        @name sleep
         @function
         @memberOf AsyncController
      */
 
-    /** awake thread
+    /**
+     * 继续运行
         @name awake
         @function
         @memberOf AsyncController
      */
 
-    /** async sequence foreach
+    /**
+     * 异步且顺序遍历数组的回调函数
         @name AsyncSeqEachCallback
         @function
-        @param {Object} item element of arr
-        @param {Number} itemIdx index of item
-        @param {AsyncController} ctrl controller of the thread
-        @returns {String} return SLEEP,REPEAT,ABORT to control thread state
+        @param {Object} item 当前的数组元素
+        @param {Number} itemIdx 当前的下标位置
+        @param {AsyncController} controller 异步循环控制器
+        @returns {String} 返回控制状态值 SLEEP,REPEAT,ABORT
      */
 
-    /** asynchronous and one by one for each every element of arr
+    /**
+     * 异步并且顺序地遍历数组中的每个元素
         @name asyncSeqEach
         @function
-        @param {Array} arr array of objects
-        @param {AsyncSeqEachCallback} callback
-        @param {Boolean} [autoStart=true]
-        @param {Boolean} [abortWhenError=false]
+        @param {Array} arr 对象数组
+        @param {AsyncSeqEachCallback} callback 回调函数
+        @param {Boolean} [autoStart=true] 是否自动启动
+        @param {Boolean} [abortWhenError=false] 是否忽略运行时异常
 
-        @return {AsyncController} controller
+        @return {AsyncController} controller 遍历的运行状态控制器
      */
-    root.asyncSeqEach = function (arr, callback, autoStart, abortWhenError)
+    var asyncSeqEach = root.asyncSeqEach = function (arr, callback, autoStart, abortWhenError)
     {
         if( arr == null || arr.length <= 0 || typeof(callback) !== "function" )
             return null;
@@ -189,23 +201,25 @@
         return ctrl;
     };
 
-    /** async sequence function
+    /**
+     * 异步且顺序执行的回调函数
         @name AsyncSeqCallback
         @function
-        @param {AsyncController} ctrl controller of the thread
-        @returns {String} return SLEEP,REPEAT,ABORT to control thread state
+        @param {AsyncController} controller 运行队列的控制器
+        @returns {String} 返回运行队列的控制状态 SLEEP,REPEAT,ABORT
      */
 
-    /** asynchronous and sequenced call each function of funcArray in same queueName.
+    /**
+       所有在同一个运行队列中的函数会被异步且顺序地调用执行
         @name asyncSeq
         @function
-        @param {AsyncSeqCallback[]} funcArray functions will be executed one by one
-        @param {String} [queueName] name of the execution queue
-        @param {Boolean} [autoStart=true]
-        @param {Boolean} [abortWhenError=false] abort when error
-        @return {AsyncController} controller
+        @param {AsyncSeqCallback[]} funcArray 回调函数数组
+        @param {String} [queueName] 队列名称
+        @param {Boolean} [autoStart=true] 是否自动启动
+        @param {Boolean} [abortWhenError=false] 是否忽略运行时异常
+        @return {AsyncController} 返回运行时控制器
      */
-    root.asyncSeq = function (funcArray, queueName, autoStart, abortWhenError)
+    var asyncSeq = root.asyncSeq = function (funcArray, queueName, autoStart, abortWhenError)
     {
         if( typeof(funcArray) === "function" )
             return asyncSeq([funcArray], queueName, abortWhenError);
@@ -276,21 +290,22 @@
         return inf.controller;
     };
 
-    /** signal handler function
+    /**
+     * 信号量响应函数
      * @name SignalHandler
      * @function
-     * @param sigName
+     * @param {String} sigName 信号量的名称
      */
 
     /** @ignore */
     var _signalMaps = {};
 
     /**
-     * raise signal, and notify all registered handler
+     * 产生一个信号，并且通知所有注册了该信号的回调函数
      * @function
-     * @param {String} sigName signal name
+     * @param {String} sigName 信号名称
      */
-    root.signal = function(sigName){
+    var signal = root.signal = function(sigName){
         if( sigName == null || sigName.length == 0 || /^\s*$/.test(sigName) )
             return new TypeError("empty sigName");
 
@@ -303,12 +318,12 @@
     };
 
     /**
-     * register signal handler
+     * 注册信号处理函数
      * @function
-     * @param {String} sigName signal name
-     * @param {SignalHandler} fnHandler signal event handler
+     * @param {String} sigName 信号名称
+     * @param {SignalHandler} fnHandler 信号处理函数
      */
-    root.onSignal = function(sigName, fnHandler){
+    var onSignal = root.onSignal = function(sigName, fnHandler){
         if( sigName == null || sigName.length == 0 || /^\s*$/.test(sigName) )
             return new TypeError("empty sigName");
 
@@ -327,12 +342,12 @@
     };
 
     /**
-     * create a stub waiting signal for asyncSeq and asyncSeqEach
+     * 为 @see asyncSeq 和 @see asyncSeqEach 注册等待信号的处理函数
      * @function
-     * @param sigName
-     * @return {AsyncSeqCallback|AsyncSeqEachCallback}
+     * @param sigName 要等待的信号量
+     * @return {AsyncSeqCallback|AsyncSeqEachCallback} 对应回调函数的封装
      */
-    root.waitSignal = function(sigName){
+    var waitSignal = root.waitSignal = function(sigName){
         var triggered = false;
         onSignal(sigName, function(sig){
             triggered = true;
